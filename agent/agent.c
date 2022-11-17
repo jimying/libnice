@@ -2541,6 +2541,21 @@ void agent_signal_new_selected_pair (NiceAgent *agent, guint stream_id,
   if(agent->reliable && nice_socket_is_reliable (lc->sockptr)) {
     agent_signal_socket_writable (agent, component);
   }
+
+  /* When selected a pair, we should free other local candidates resource(port, socket) immediately */
+  {
+    GSList *l = component->local_candidates, *next = NULL;
+    while (l) {
+      NiceCandidate *c = l->data;
+      next = l->next;
+
+      if (c != lcandidate) {
+        nice_component_remove_socket(agent, component, ((NiceCandidateImpl *)c)->sockptr);
+      }
+
+      l = next;
+    }
+  }
 }
 
 void agent_signal_new_candidate (NiceAgent *agent, NiceCandidate *candidate)
